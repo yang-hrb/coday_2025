@@ -53,83 +53,91 @@ public class ProblemTwo {
         int n = array.length;
         if (n == 0) return 0;
 
-        // Store indices for each value
-        List<Integer>[] positions = new ArrayList[MAX_VAL + 1];
-        for (int i = 1; i <= MAX_VAL; i++) {
-            positions[i] = new ArrayList<>();
-        }
-        
-        int[] totalFreq = new int[MAX_VAL + 1];
+        // Use HashMap to store only values that actually appear
+        java.util.HashMap<Integer, ArrayList<Integer>> positions = new java.util.HashMap<>();
+
         for (int i = 0; i < n; i++) {
             int val = array[i];
-            positions[val].add(i);
-            totalFreq[val]++;
+            positions.computeIfAbsent(val, k -> new ArrayList<>()).add(i);
         }
 
         int maxLen = 0;
 
-        // Single type max
-        for (int v = 1; v <= MAX_VAL; v++) {
-            if (totalFreq[v] > maxLen) {
-                maxLen = totalFreq[v];
+        // Single type max - only check values that exist
+        for (ArrayList<Integer> posList : positions.values()) {
+            if (posList.size() > maxLen) {
+                maxLen = posList.size();
             }
         }
 
-        // Dual type
-        // Reusable counts array to avoid allocation in loop
-        int[] counts = new int[MAX_VAL + 1];
+        // Dual type - reusable counts map for actual values only
+        java.util.HashMap<Integer, Integer> counts = new java.util.HashMap<>();
 
-        for (int A = 1; A <= MAX_VAL; A++) {
-            List<Integer> idxs = positions[A];
+        for (java.util.Map.Entry<Integer, ArrayList<Integer>> entry : positions.entrySet()) {
+            ArrayList<Integer> idxs = entry.getValue();
             int kMax = idxs.size() / 2;
             if (kMax == 0) continue;
 
             // Initialize counts for the widest range (K=1)
-            // Range is (idxs[0], idxs[end]) exclusive
             int left = idxs.get(0);
             int right = idxs.get(idxs.size() - 1);
-            
+
             // Reset counts
-            java.util.Arrays.fill(counts, 0);
-            
-            // Optimization: only scan if left < right - 1
+            counts.clear();
+
+            // Only scan if there's a middle section
             if (left < right - 1) {
                 for (int i = left + 1; i < right; i++) {
-                    counts[array[i]]++;
+                    counts.merge(array[i], 1, Integer::sum);
                 }
             }
 
             for (int k = 1; k <= kMax; k++) {
-                // Current middle max
+                // Current middle max - only iterate over actual values
                 int middleMax = 0;
-                for (int v = 1; v <= MAX_VAL; v++) {
-                    if (counts[v] > middleMax) {
-                        middleMax = counts[v];
+                for (int count : counts.values()) {
+                    if (count > middleMax) {
+                        middleMax = count;
                     }
                 }
-                
+
                 int currentLen = 2 * k + middleMax;
                 if (currentLen > maxLen) {
                     maxLen = currentLen;
                 }
 
                 // Prepare for next K (k+1)
-                // We need to shrink the window
                 if (k < kMax) {
                     int currentLeftIdx = idxs.get(k - 1);
                     int nextLeftIdx = idxs.get(k);
-                    
+
                     int currentRightIdx = idxs.get(idxs.size() - k);
                     int nextRightIdx = idxs.get(idxs.size() - k - 1);
 
                     // Remove elements from left side
                     for (int i = currentLeftIdx + 1; i <= nextLeftIdx; i++) {
-                        counts[array[i]]--;
+                        int val = array[i];
+                        Integer currentCount = counts.get(val);
+                        if (currentCount != null) {
+                            if (currentCount == 1) {
+                                counts.remove(val);
+                            } else {
+                                counts.put(val, currentCount - 1);
+                            }
+                        }
                     }
-                    
+
                     // Remove elements from right side
                     for (int i = nextRightIdx; i < currentRightIdx; i++) {
-                        counts[array[i]]--;
+                        int val = array[i];
+                        Integer currentCount = counts.get(val);
+                        if (currentCount != null) {
+                            if (currentCount == 1) {
+                                counts.remove(val);
+                            } else {
+                                counts.put(val, currentCount - 1);
+                            }
+                        }
                     }
                 }
             }

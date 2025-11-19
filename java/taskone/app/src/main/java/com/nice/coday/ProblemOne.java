@@ -70,11 +70,12 @@ public class ProblemOne {
                     long dist1 = Long.MAX_VALUE;
                     long dist2 = Long.MAX_VALUE;
 
+                    // Taverns are sorted, so we can directly subtract
                     if (insertionPoint < m) {
-                        dist1 = Math.abs(taverns[insertionPoint] - city);
+                        dist1 = taverns[insertionPoint] - city;
                     }
                     if (insertionPoint > 0) {
-                        dist2 = Math.abs(taverns[insertionPoint - 1] - city);
+                        dist2 = city - taverns[insertionPoint - 1];
                     }
                     minDist = Math.min(dist1, dist2);
                 }

@@ -126,6 +126,38 @@ Where:
 2. **Problem Two**: Pre-indexing positions enables efficient window queries without repeated scanning
 3. **Problem Three**: State pruning prevents exponential blowup in DP, keeping only Pareto-optimal solutions
 
+## Performance Optimizations
+
+### Recent Optimizations (Latest Update)
+
+**Problem One**:
+- Eliminated unnecessary `Math.abs()` calls by leveraging sorted tavern array
+- Direct subtraction based on position reduces function call overhead
+- Micro-optimization for large-scale test cases
+
+**Problem Two** (Major improvements):
+- **Memory optimization**: Replaced fixed 201-element ArrayList array with HashMap
+  - Only stores values that actually appear in the data
+  - Reduces memory from O(N × 200) to O(N × V) where V is unique values
+- **Time optimization**: Finding maximum now iterates only over existing values
+  - Eliminates scanning 200 positions when only few values exist
+  - Significant speedup for sparse value distributions
+- **Efficient operations**: Uses `computeIfAbsent()` and `merge()` for cleaner, faster code
+- **Null safety**: Added proper null checks in decrement operations
+
+**Task Three**:
+- Cleaner code structure with reduced overhead
+- Consistent use of `int` for maxStory (matches internal types)
+- Streamlined comments for better readability
+
+### Performance Impact
+
+These optimizations target:
+1. **Cache efficiency**: Smaller data structures fit better in CPU cache
+2. **Reduced allocations**: Fewer object creations, less GC pressure
+3. **Better branching**: Simpler conditionals for CPU prediction
+4. **Algorithmic efficiency**: Only process data that matters
+
 ## Building and Running
 
 Each task is a separate Maven module:
