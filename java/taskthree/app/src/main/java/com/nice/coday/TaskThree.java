@@ -4,10 +4,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 public class TaskThree {
-    
+
+    @SuppressWarnings("unchecked")
     public long solve(Path inputPath) throws IOException {
         try (BufferedReader reader = Files.newBufferedReader(inputPath)) {
             StringTokenizer tokenizer = null;
@@ -68,14 +72,12 @@ public class TaskThree {
                 }
 
                 // Remove entries dominated by the current one
-                // More efficient: use removeIf-like pattern
                 Iterator<Map.Entry<Integer, Integer>> it = map.tailMap(weight).entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry<Integer, Integer> entry = it.next();
                     if (entry.getValue() <= currentStory) {
                         it.remove();
                     } else {
-                        // Optimization: stop early since map is sorted
                         break;
                     }
                 }
