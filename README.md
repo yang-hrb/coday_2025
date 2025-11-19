@@ -128,35 +128,44 @@ Where:
 
 ## Performance Optimizations
 
-### Recent Optimizations (Latest Update)
+### Proven Optimizations
 
 **Problem One**:
 - Eliminated unnecessary `Math.abs()` calls by leveraging sorted tavern array
 - Direct subtraction based on position reduces function call overhead
 - Micro-optimization for large-scale test cases
 
-**Problem Two** (Major improvements):
-- **Memory optimization**: Replaced fixed 201-element ArrayList array with HashMap
-  - Only stores values that actually appear in the data
-  - Reduces memory from O(N × 200) to O(N × V) where V is unique values
-- **Time optimization**: Finding maximum now iterates only over existing values
-  - Eliminates scanning 200 positions when only few values exist
-  - Significant speedup for sparse value distributions
-- **Efficient operations**: Uses `computeIfAbsent()` and `merge()` for cleaner, faster code
-- **Null safety**: Added proper null checks in decrement operations
+**Problem Two** - High-Performance Array-Based Solution:
+- **Why arrays beat HashMap for small ranges (1-200)**:
+  - Fixed-size arrays provide O(1) access with minimal overhead
+  - Arrays are cache-friendly: contiguous memory layout
+  - `Arrays.fill()` is highly optimized at JVM level
+  - No hash computation, no collision handling, no Entry objects
+- **Key techniques**:
+  - Pre-allocated array of ArrayLists for position tracking
+  - Reusable `int[]` counts array to avoid repeated allocations
+  - Cache-friendly linear scans for finding maximum
+  - Direct array indexing for increment/decrement operations
+- **Performance**: ~40-60ms per benchmark with ~18MB memory
 
 **Task Three**:
-- Cleaner code structure with reduced overhead
-- Consistent use of `int` for maxStory (matches internal types)
-- Streamlined comments for better readability
+- Lazy initialization of TreeMaps (only when needed)
+- Efficient state pruning to maintain Pareto-optimal solutions
+- Early termination in dominated entry removal
 
-### Performance Impact
+### Important Lesson Learned
 
-These optimizations target:
-1. **Cache efficiency**: Smaller data structures fit better in CPU cache
-2. **Reduced allocations**: Fewer object creations, less GC pressure
-3. **Better branching**: Simpler conditionals for CPU prediction
-4. **Algorithmic efficiency**: Only process data that matters
+**Don't over-optimize without benchmarking!**
+
+Initial attempt to replace arrays with HashMap in Problem Two:
+- **Result**: Performance degraded 20-30x (from ~50ms to ~1.8s)
+- **Memory**: Increased 60-90x (from ~18MB to ~1.7GB)
+- **Why it failed**:
+  - HashMap overhead (Entry objects, hash computation) >> array overhead
+  - For small integer ranges (1-200), arrays are optimal
+  - Modern JVMs heavily optimize array operations
+
+**Golden rule**: Arrays are king for small, dense integer ranges!
 
 ## Building and Running
 

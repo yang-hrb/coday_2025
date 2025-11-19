@@ -53,28 +53,33 @@ public class ProblemTwo {
         int n = array.length;
         if (n == 0) return 0;
 
-        // Use HashMap to store only values that actually appear
-        java.util.HashMap<Integer, ArrayList<Integer>> positions = new java.util.HashMap<>();
+        // Store indices for each value - array is much faster than HashMap for small range
+        List<Integer>[] positions = new ArrayList[MAX_VAL + 1];
+        for (int i = 1; i <= MAX_VAL; i++) {
+            positions[i] = new ArrayList<>();
+        }
 
+        int[] totalFreq = new int[MAX_VAL + 1];
         for (int i = 0; i < n; i++) {
             int val = array[i];
-            positions.computeIfAbsent(val, k -> new ArrayList<>()).add(i);
+            positions[val].add(i);
+            totalFreq[val]++;
         }
 
         int maxLen = 0;
 
-        // Single type max - only check values that exist
-        for (ArrayList<Integer> posList : positions.values()) {
-            if (posList.size() > maxLen) {
-                maxLen = posList.size();
+        // Single type max
+        for (int v = 1; v <= MAX_VAL; v++) {
+            if (totalFreq[v] > maxLen) {
+                maxLen = totalFreq[v];
             }
         }
 
-        // Dual type - reusable counts map for actual values only
-        java.util.HashMap<Integer, Integer> counts = new java.util.HashMap<>();
+        // Dual type - reusable counts array for O(1) access
+        int[] counts = new int[MAX_VAL + 1];
 
-        for (java.util.Map.Entry<Integer, ArrayList<Integer>> entry : positions.entrySet()) {
-            ArrayList<Integer> idxs = entry.getValue();
+        for (int A = 1; A <= MAX_VAL; A++) {
+            List<Integer> idxs = positions[A];
             int kMax = idxs.size() / 2;
             if (kMax == 0) continue;
 
@@ -82,22 +87,22 @@ public class ProblemTwo {
             int left = idxs.get(0);
             int right = idxs.get(idxs.size() - 1);
 
-            // Reset counts
-            counts.clear();
+            // Reset counts - Arrays.fill is very fast
+            java.util.Arrays.fill(counts, 0);
 
             // Only scan if there's a middle section
             if (left < right - 1) {
                 for (int i = left + 1; i < right; i++) {
-                    counts.merge(array[i], 1, Integer::sum);
+                    counts[array[i]]++;
                 }
             }
 
             for (int k = 1; k <= kMax; k++) {
-                // Current middle max - only iterate over actual values
+                // Current middle max - array scan is very cache-friendly
                 int middleMax = 0;
-                for (int count : counts.values()) {
-                    if (count > middleMax) {
-                        middleMax = count;
+                for (int v = 1; v <= MAX_VAL; v++) {
+                    if (counts[v] > middleMax) {
+                        middleMax = counts[v];
                     }
                 }
 
@@ -114,30 +119,14 @@ public class ProblemTwo {
                     int currentRightIdx = idxs.get(idxs.size() - k);
                     int nextRightIdx = idxs.get(idxs.size() - k - 1);
 
-                    // Remove elements from left side
+                    // Remove elements from left side - O(1) array access
                     for (int i = currentLeftIdx + 1; i <= nextLeftIdx; i++) {
-                        int val = array[i];
-                        Integer currentCount = counts.get(val);
-                        if (currentCount != null) {
-                            if (currentCount == 1) {
-                                counts.remove(val);
-                            } else {
-                                counts.put(val, currentCount - 1);
-                            }
-                        }
+                        counts[array[i]]--;
                     }
 
-                    // Remove elements from right side
+                    // Remove elements from right side - O(1) array access
                     for (int i = nextRightIdx; i < currentRightIdx; i++) {
-                        int val = array[i];
-                        Integer currentCount = counts.get(val);
-                        if (currentCount != null) {
-                            if (currentCount == 1) {
-                                counts.remove(val);
-                            } else {
-                                counts.put(val, currentCount - 1);
-                            }
-                        }
+                        counts[array[i]]--;
                     }
                 }
             }
